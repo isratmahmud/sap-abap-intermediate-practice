@@ -226,14 +226,20 @@ CLASS lcl_passenger_flight IMPLEMENTATION.
     txt = replace( val = txt sub = '&to&' with = connection_details-airport_to_id ).
 
     APPEND txt TO r_result.
-    APPEND |Planetype:      { planetype  } | TO r_result.
-    APPEND |Maximum Seats:  { seats_max  } | TO r_result.
-    APPEND |Occupied Seats: { seats_occ } | TO r_result.
-    APPEND |Free Seats:     { seats_free } | TO r_result.
-    APPEND |Ticket Price:   { price CURRENCY = currency } { currency } | TO r_result.
-    APPEND |Duration: { connection_details-duration } minutes| TO r_result.
+*    APPEND |Planetype:      { planetype  } | TO r_result.
+*    APPEND |Maximum Seats:  { seats_max  } | TO r_result.
+*    APPEND |Occupied Seats: { seats_occ } | TO r_result.
+*    APPEND |Free Seats:     { seats_free } | TO r_result.
+*    APPEND |Ticket Price:   { price CURRENCY = currency } { currency } | TO r_result.
+*    APPEND |Duration: { connection_details-duration } minutes| TO r_result.
 
+    APPEND |{ 'Maximum Seats:'(007) } { seats_max } | TO r_result.
+    APPEND |{ 'Occupied Seats:'(008) } { seats_occ } | TO r_result.
+    APPEND |{ 'Free Seats:'(009) } { seats_free } | TO r_result.
+    APPEND |{ 'Ticket Price:'(010) } { price CURRENCY = currency } { currency } | TO r_result.
+    APPEND |{ 'Duration:'(011) } { connection_details-duration } { 'minutes'(012) }| TO r_result.
   ENDMETHOD.
+
 
 ENDCLASS.
 

@@ -22,6 +22,7 @@ CLASS zcl_2393_23_oos_factory IMPLEMENTATION.
     TRY.
 *        DATA(carrier) = NEW lcl_carrier(  i_carrier_id = c_carrier_id ).
 DATA(carrier) = lcl_carrier=>get_instance( i_carrier_id = c_carrier_id ).
+DATA(carrier2) = lcl_carrier=>get_instance( i_carrier_id = c_carrier_id ).
 
         out->write(  name = `Carrier Overview`
                      data = carrier->get_output(  ) ).

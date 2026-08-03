@@ -5,24 +5,24 @@
 *class lcl_flight definition create private.
 
 
-interface lif_output.
+INTERFACE lif_output.
 *    TYPES t_output TYPE String.
 *    TYPES tt_output TYPE STANDARD TABLE OF t_output
 *                    WITH NON-UNIQUE DEFAULT KEY.
 
-      TYPES t_output TYPE String.
-      TYPES tt_output TYPE STANDARD TABLE OF t_output
-                      WITH NON-UNIQUE DEFAULT KEY.
+  TYPES t_output TYPE String.
+  TYPES tt_output TYPE STANDARD TABLE OF t_output
+                  WITH NON-UNIQUE DEFAULT KEY.
   METHODS get_output RETURNING VALUE(r_result) TYPE tt_output.
 
-endinterface.
+ENDINTERFACE.
 
 CLASS lcl_flight DEFINITION ABSTRACT.
 
   PUBLIC SECTION.
 
-  INTERFACES lif_output.
-  ALIASES get_output for lif_output~get_output.
+    INTERFACES lif_output.
+    ALIASES get_output FOR lif_output~get_output.
 
     METHODS constructor
       IMPORTING
@@ -61,9 +61,9 @@ CLASS lcl_flight DEFINITION ABSTRACT.
 
 *        VALUE(r_result) TYPE string_table.
 
-         METHODS get_description
-          RETURNING
-            VALUE(r_result) TYPE string_table.
+    METHODS get_description
+      RETURNING
+        VALUE(r_result) TYPE string_table.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -155,7 +155,7 @@ CLASS lcl_passenger_flight DEFINITION INHERITING FROM lcl_flight.
 
   PROTECTED SECTION.
 
-     METHODS
+    METHODS
       get_description REDEFINITION.
   PRIVATE SECTION.
 
@@ -499,7 +499,7 @@ CLASS lcl_cargo_flight DEFINITION INHERITING FROM lcl_flight.
 
   PROTECTED SECTION.
 
-  METHODS get_description REDEFINITION.
+    METHODS get_description REDEFINITION.
   PRIVATE SECTION.
 
     TYPES: BEGIN OF st_flights_buffer,
@@ -622,20 +622,23 @@ CLASS lcl_carrier DEFINITION CREATE PRIVATE.
 
   PUBLIC SECTION.
 
-  INTERFACES lif_output.
-  ALIASES: get_output FOR lif_output~get_output,
-           t_output FOR lif_output~t_output,
-           tt_output FOR lif_output~tt_output.
+    INTERFACES lif_output.
+    ALIASES: get_output FOR lif_output~get_output,
+             t_output FOR lif_output~t_output,
+             tt_output FOR lif_output~tt_output.
+
+*  table type
+    TYPES: tt_carriers TYPE STANDARD TABLE OF REF TO lcl_carrier WITH DEFAULT KEY.
 
 *    factory method
-  CLASS-METHODS get_instance
-    IMPORTING
-      i_carrier_id TYPE /dmo/carrier_id
-    RETURNING
-      value(r_result) TYPE REF TO lcl_carrier
-    RAISING
-      cx_abap_invalid_value
-      cx_abap_auth_check_exception.
+    CLASS-METHODS get_instance
+      IMPORTING
+        i_carrier_id    TYPE /dmo/carrier_id
+      RETURNING
+        VALUE(r_result) TYPE REF TO lcl_carrier
+      RAISING
+        cx_abap_invalid_value
+        cx_abap_auth_check_exception.
 
 
     DATA carrier_id TYPE /dmo/carrier_id READ-ONLY.
@@ -674,6 +677,8 @@ CLASS lcl_carrier DEFINITION CREATE PRIVATE.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    CLASS-DATA instances TYPE tt_carriers.
+
     DATA name          TYPE /dmo/carrier_name .
     DATA currency_code TYPE /dmo/currency_code ##NEEDED.
 
@@ -688,7 +693,7 @@ CLASS lcl_carrier DEFINITION CREATE PRIVATE.
     METHODS get_average_free_seats
       RETURNING VALUE(r_result) TYPE i.
 
-     METHODS constructor
+    METHODS constructor
       IMPORTING
                 i_carrier_id TYPE /dmo/carrier_id
       RAISING   cx_abap_invalid_value
@@ -701,15 +706,15 @@ CLASS lcl_carrier IMPLEMENTATION.
 *factory method
   METHOD get_instance.
 
-  SELECT SINGLE
-      FROM /DMO/carrier
+    SELECT SINGLE
+        FROM /DMO/carrier
 *    FIELDS name, currency_code
-     FIELDS concat_with_space( carrier_id, name, 1 ) as name, currency_code
-     WHERE carrier_id = @i_carrier_id
+       FIELDS concat_with_space( carrier_id, name, 1 ) AS name, currency_code
+       WHERE carrier_id = @i_carrier_id
 *     INTO ( @me->name, @me->currency_code ).
-    INTO @DATA(details).
+      INTO @DATA(details).
 
-   IF sy-subrc <> 0.
+    IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE cx_abap_invalid_value.
     ENDIF.
 
@@ -723,11 +728,22 @@ CLASS lcl_carrier IMPLEMENTATION.
       RAISE EXCEPTION TYPE cx_abap_auth_check_exception.
     ENDIF.
 
+
+    Try.
+    r_result = instances[ table_line->carrier_id = i_carrier_id ].
+
+    CATCH cx_sy_itab_line_not_found.
+
     r_result = NEW #(
       i_carrier_id = i_carrier_id
     ).
 
-    r_result->name = details-name. r_result->currency_code = details-currency_code.
+    r_result->name = details-name.
+    r_result->currency_code = details-currency_code.
+
+    APPEND r_result TO instances.
+endtry.
+
 
   ENDMETHOD.
 
